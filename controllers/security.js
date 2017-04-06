@@ -51,37 +51,28 @@ exports.aes = (function(clave) {
 exports.ecdh = (function(){
     var ecdh = require('ecdh');
     var curve = ecdh.getCurve('secp128r1');
-    var generarClavePublica, generarClavePrivada, generarClaveCompartida;
     generateKeyPair = function(){
         return ecdh.generateKeys(curve);
     };
-    generatePrivateKey = function(){
-
+    pointToPublicKey = function(hexPoint){
+        var buffer = new Buffer(hexPoint, 'hex');
+        var publicKey = ecdh.PublicKey.fromBuffer(curve, buffer);
+        return publicKey;
     };
-    generatePublicKey = function(){
-
+    pointToPrivateKey = function(hexPoint){
+        var buffer = new Buffer(hexPoint, 'hex');
+        var privateKey = ecdh.PrivateKey.fromBuffer(curve, buffer);
+        return privateKey;
     };
-    generarClavePublica = function(clave){
-        var buf = new Buffer(clave, 'hex');
-        var publica = ecdh.PublicKey.fromBuffer(curve, buf);
-        return publica;
-    };
-    generarClavePrivada = function(clave){
-        var buf = new Buffer(clave, 'base64');
-        var publica = ecdh.PrivateKey.fromBuffer(curve, buf);
-        return publica;
-    };
-    generarClaveCompartida = function(privada, publica){
-        var compartida = privada.deriveSharedSecret(publica);
-        return compartida.toString('base64');
+    generateAgreedKey = function(privateKey, publicKey){
+        var agreedKey = privateKey.deriveSharedSecret(publicKey);
+        return agreedKey.toString('base64');
     };
     return{
         generateKeyPair : generateKeyPair,
-        generatePrivateKey : generatePrivateKey,
-        generatePublicKey : generatePublicKey,
-        generarClavePublica : generarClavePublica,
-        generarClavePrivada : generarClavePrivada,
-        generarClaveCompartida : generarClaveCompartida
+        pointToPublicKey : pointToPublicKey,
+        pointToPrivateKey : pointToPrivateKey,
+        generateAgreedKey : generateAgreedKey
     }
 })();
 
@@ -108,10 +99,10 @@ exports.ecdsa = (function(){
     hexToSignature = function(base64){
         return new Buffer(base64, 'hex');
     };
-    pointToPublicKey = function(clave){
-        var buf = new Buffer(clave, 'hex');
-        var publica = ecdh.PublicKey.fromBuffer(curve, buf);
-        return publica;
+    pointToPublicKey = function(hexPoint){
+        var buffer = new Buffer(hexPoint, 'hex');
+        var publicKey = ecdh.PublicKey.fromBuffer(curve, buffer);
+        return publicKey;
     };
     sign = function(message, privateKey){
         var signature = privateKey.sign(messageToHash(message), algorithm);
