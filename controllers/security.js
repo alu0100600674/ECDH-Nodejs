@@ -45,8 +45,8 @@ exports.aes = (function(clave) {
 
 /*
  * Elliptic Curve Diffie-Hellman
- * SHA256
- * secp128r1
+ * Hash algorithm: SHA256
+ * Curve: secp128r1
  */
 exports.ecdh = (function(){
     var ecdh = require('ecdh');
@@ -87,8 +87,8 @@ exports.ecdh = (function(){
 
 /*
  * Elliptic Curve Digital Signature Algorithm
- * SHA256
- * secp256k1
+ * Hash algorithm: SHA256
+ * Curve: secp256k1
  */
 exports.ecdsa = (function(){
     var ecdh = require('ecdh');
@@ -97,25 +97,32 @@ exports.ecdsa = (function(){
     generateKeyPair = function(){
         return ecdh.generateKeys(curve);
     };
-    textToHash = function(text){
-        var message = new Buffer(text);
-        var hash = crypto.createHash(algorithm).update(message).digest();
-        return hash;
+    messageToHash = function(message){
+        var msg = new Buffer(message, 'utf8');
+        var hash_msg = crypto.createHash(algorithm).update(msg).digest();
+        return hash_msg;
     };
-    generarClavePublica = function(clave){
+    base64ToSignature = function(base64){
+        return new Buffer(base64, 'base64');
+    };
+    hexToSignature = function(base64){
+        return new Buffer(base64, 'hex');
+    };
+    pointToPublicKey = function(clave){
         var buf = new Buffer(clave, 'hex');
         var publica = ecdh.PublicKey.fromBuffer(curve, buf);
         return publica;
     };
-    sign = function(){
-
+    sign = function(message, privateKey){
+        var signature = privateKey.sign(messageToHash(message), algorithm);
+        return signature.toString('base64');
     };
-    verify = function(){
-
+    verify = function(message, publicKey, signature){
+        return publicKey.verifySignature(messageToHash(message), base64ToSignature(signature));
     };
     return{
         generateKeyPair : generateKeyPair,
-        generarClavePublica : generarClavePublica,
+        pointToPublicKey : pointToPublicKey,
         sign : sign,
         verify, verify
     }
