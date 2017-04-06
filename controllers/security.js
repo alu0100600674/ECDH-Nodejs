@@ -1,46 +1,37 @@
-var crypto = require('crypto');
-
 /*
  * Advanced Encryption Standard 256 bit
  * Cipher Block Chaining mode
  */
 exports.aes = (function(clave) {
-  var cipher_descifrar, cipher_cifrar, descifrar, setClave, cifrar, iv, key;
-  key = crypto.createHash("sha256").update("somepassword").digest();
-  iv = '4e5Wa71fYoT7MFEX';
-  cipher_descifrar = function(mode, data) {
-    var encipher, encoded;
-    encipher = crypto[mode]("aes-256-cbc", key, iv);
-    encoded = encipher.update(data,'base64','utf8');
-    encoded += encipher.final('utf8');
-    return encoded;
-  };
-  cipher_cifrar = function(mode, data) {
-    var encipher, encoded;
-    encipher = crypto[mode]("aes-256-cbc", key, iv);
-    encoded = encipher.update(data,'utf8','base64');
-    encoded += encipher.final('base64');
-    return encoded;
-  };
-  cifrar = function(data) {
-    return cipher_cifrar("createCipheriv", data);
-    console.log("cifrado");
-  };
-  descifrar = function(data) {
-    return cipher_descifrar("createDecipheriv", data);
-  };
-  setClave = function(clave){
-      key = crypto.createHash("sha256").update(clave).digest();
-  };
-  getClave = function(){
-      return key;
-  };
-  return {
-    cifrar: cifrar,
-    descifrar: descifrar,
-    setClave : setClave,
-    getClave : getClave
-  };
+    var crypto = require('crypto');
+    var iv = '4e5Wa71fYoT7MFEX';
+    cipher_encrypt = function(mode, data, key) {
+        var encipher, encoded;
+        encipher = crypto[mode]("aes-256-cbc", key, iv);
+        encoded = encipher.update(data,'utf8','base64');
+        encoded += encipher.final('base64');
+        return encoded;
+    };
+    cipher_decrypt = function(mode, data, key) {
+        var encipher, encoded;
+        encipher = crypto[mode]("aes-256-cbc", key, iv);
+        encoded = encipher.update(data,'base64','utf8');
+        encoded += encipher.final('utf8');
+        return encoded;
+    };
+    encrypt = function(data, key) {
+        return cipher_encrypt("createCipheriv", data, makeKey(key));
+    };
+    decrypt = function(data, key) {
+        return cipher_decrypt("createDecipheriv", data, makeKey(key));
+    };
+    makeKey = function(key){
+        return crypto.createHash("sha256").update(key).digest();
+    };
+    return {
+        encrypt: encrypt,
+        decrypt: decrypt,
+    };
 })();
 
 /*
@@ -82,6 +73,7 @@ exports.ecdh = (function(){
  * Curve: secp256k1
  */
 exports.ecdsa = (function(){
+    var crypto = require('crypto');
     var ecdh = require('ecdh');
     var curve = ecdh.getCurve('secp256k1');
     var algorithm = 'sha256';
