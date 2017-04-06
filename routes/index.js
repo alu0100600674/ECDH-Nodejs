@@ -26,12 +26,12 @@ router.post('/test', function(req, res, next) {
     keyPair = security.ecdh.generateKeyPair();
     privateKey = keyPair.privateKey;
     publicKey = keyPair.publicKey;
-    clientKey = security.ecdh.generarClavePublica(req.body.publickey);
+    clientKey = security.ecdh.pointToPublicKey(req.body.publickey);
 
     console.log(req.body.publickey);
 
     //ecdh
-    agreedKey = security.ecdh.generarClaveCompartida(privateKey, clientKey);
+    agreedKey = security.ecdh.generateAgreedKey(privateKey, clientKey);
     // console.log(agreedKey);
 
     console.log(req.body.appid);
@@ -46,9 +46,10 @@ router.post('/test', function(req, res, next) {
     newkey.save();
 
     // PRUEBAS
-    security.aes.setClave(agreedKey.toString('base64'));
-    var cif = security.aes.cifrar("hola");
+    // security.aes.setClave(agreedKey.toString('base64'));
+    var cif = security.aes.encrypt("hola", agreedKey.toString('base64'));
     console.log(cif);
+
     // FIN PRUEBAS
 
     // res.send("ok")
@@ -58,10 +59,10 @@ router.post('/test', function(req, res, next) {
 router.post('/msg', function(req, res, next) {
     Key.findOne({appid: req.body.appid}, function(err, k){
         console.log(k.key);
-        security.aes.setClave(k.key.toString('base64'));
+        // security.aes.setClave(k.key.toString('base64'));
 
         // DESCIFRADO
-        var descifrado = security.aes.descifrar(req.body.msg);
+        var descifrado = security.aes.decrypt(req.body.msg, k.key.toString('base64'));
         console.log(descifrado);
     });
 
